@@ -37,7 +37,7 @@ function StatCard({ label, value, sub, color }) {
   )
 }
 
-export default function Dashboard({ data, updateData, setView }) {
+export default function Dashboard({ data, updateData, setView, navigateTo }) {
   const [fabOpen, setFabOpen] = useState(false)
 
   const tasks = getAllTasks(data)
@@ -128,14 +128,17 @@ export default function Dashboard({ data, updateData, setView }) {
             {overdue.map(t => {
               const days = t.nextDue ? -daysFromToday(t.nextDue) : null
               return (
-                <div key={t.id} className="px-4 py-3 flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate" style={{ color: 'var(--color-text)' }}>{t.task}</div>
+                <div key={t.id} className="px-4 py-3 flex items-center gap-3 group">
+                  <button
+                    onClick={() => navigateTo('systems', t.systemId)}
+                    className="flex-1 min-w-0 text-left"
+                  >
+                    <div className="text-sm font-medium truncate group-hover:text-accent transition-colors" style={{ color: 'var(--color-text)' }}>{t.task}</div>
                     <div className="text-xs mt-0.5 flex items-center gap-2" style={{ color: 'var(--color-muted)' }}>
-                      <span>{t.systemName}</span>
+                      <span className="underline underline-offset-2 decoration-dotted">{t.systemName}</span>
                       {days !== null && <span className="font-mono text-red-400">{days}d overdue</span>}
                     </div>
-                  </div>
+                  </button>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Badge label={t.priority} cls={PRIORITY_COLORS[t.priority] ?? 'bg-slate-500 text-white'} />
                     <button
@@ -169,14 +172,17 @@ export default function Dashboard({ data, updateData, setView }) {
             {dueSoon.map(t => {
               const days = t.nextDue ? daysFromToday(t.nextDue) : null
               return (
-                <div key={t.id} className="px-4 py-3 flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate" style={{ color: 'var(--color-text)' }}>{t.task}</div>
+                <div key={t.id} className="px-4 py-3 flex items-center gap-3 group">
+                  <button
+                    onClick={() => navigateTo('systems', t.systemId)}
+                    className="flex-1 min-w-0 text-left"
+                  >
+                    <div className="text-sm font-medium truncate group-hover:text-accent transition-colors" style={{ color: 'var(--color-text)' }}>{t.task}</div>
                     <div className="text-xs mt-0.5 flex items-center gap-2" style={{ color: 'var(--color-muted)' }}>
-                      <span>{t.systemName}</span>
+                      <span className="underline underline-offset-2 decoration-dotted">{t.systemName}</span>
                       {days !== null && <span className="font-mono text-amber-400">in {days}d</span>}
                     </div>
-                  </div>
+                  </button>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Badge label={t.priority} cls={PRIORITY_COLORS[t.priority] ?? 'bg-slate-500 text-white'} />
                     <button

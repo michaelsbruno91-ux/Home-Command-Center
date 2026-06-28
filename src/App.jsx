@@ -54,9 +54,13 @@ export default function App() {
     return <SettingsView onConnect={reconnect} />
   }
 
-  function handleSearchNavigate(targetView, id) {
+  function navigateTo(targetView, id) {
+    setHighlightId(id ?? null)
     setView(targetView)
-    setHighlightId(id)
+  }
+
+  function handleSearchNavigate(targetView, id) {
+    navigateTo(targetView, id)
     setSearchOpen(false)
     setTimeout(() => setHighlightId(null), 2000)
   }
@@ -64,7 +68,7 @@ export default function App() {
   const viewProps = { data, updateData, highlightId }
 
   const VIEWS = {
-    dashboard:    <Dashboard    {...viewProps} setView={setView} />,
+    dashboard:    <Dashboard    {...viewProps} setView={setView} navigateTo={navigateTo} />,
     systems:      <SystemsView  {...viewProps} />,
     improvements: <ImprovementsView {...viewProps} />,
     products:     <ProductsView {...viewProps} />,

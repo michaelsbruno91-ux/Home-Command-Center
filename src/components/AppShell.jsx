@@ -1,6 +1,33 @@
 import { LayoutDashboard, Wrench, TrendingUp, Package, Users, FileText, Settings, Search } from 'lucide-react'
 import SyncIndicator from './SyncIndicator'
 
+const APP_ENV = import.meta.env.VITE_APP_ENV
+
+const ENV_BADGE = {
+  sandbox: { label: 'SANDBOX', cls: 'bg-amber-400/20 text-amber-400 border-amber-400/30' },
+  develop: { label: 'DEVELOPMENT', cls: 'bg-blue-400/20 text-blue-400 border-blue-400/30' },
+  preprod: { label: 'PRE-PROD', cls: 'bg-purple-400/20 text-purple-400 border-purple-400/30' },
+}
+
+function EnvBadge({ small = false }) {
+  if (APP_ENV === 'production') {
+    return <span className="text-[10px] font-mono font-bold text-emerald-400 flex-shrink-0">P</span>
+  }
+  const cfg = ENV_BADGE[APP_ENV] ?? ENV_BADGE.develop
+  if (small) {
+    return (
+      <span className={`text-[9px] font-mono font-bold px-1 py-0.5 rounded border ${cfg.cls}`}>
+        {cfg.label}
+      </span>
+    )
+  }
+  return (
+    <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${cfg.cls}`}>
+      {cfg.label}
+    </span>
+  )
+}
+
 const NAV = [
   { id: 'dashboard',    label: 'Dashboard',    Icon: LayoutDashboard },
   { id: 'systems',      label: 'Systems',       Icon: Wrench          },
@@ -28,8 +55,11 @@ export default function AppShell({
       >
         {/* Logo */}
         <div className="px-5 py-5 border-b" style={{ borderColor: 'var(--color-border)' }}>
-          <div className="text-sm font-bold tracking-tight" style={{ color: 'var(--color-accent)' }}>
-            HOME COMMAND CENTER
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm font-bold tracking-tight" style={{ color: 'var(--color-accent)' }}>
+              HOME COMMAND CENTER
+            </span>
+            <EnvBadge />
           </div>
           <div className="text-[11px] font-mono mt-0.5" style={{ color: 'var(--color-muted)' }}>
             11 Wilson Way
@@ -83,9 +113,10 @@ export default function AppShell({
         >
           {/* Mobile: app name | Desktop: current view name */}
           <div>
-            <h1 className="text-sm font-bold tracking-tight md:hidden" style={{ color: 'var(--color-accent)' }}>
-              HCC
-            </h1>
+            <div className="flex items-center gap-1.5 md:hidden">
+              <h1 className="text-sm font-bold tracking-tight" style={{ color: 'var(--color-accent)' }}>HCC</h1>
+              <EnvBadge small />
+            </div>
             <h1 className="hidden md:block text-base font-bold tracking-tight capitalize" style={{ color: 'var(--color-text)' }}>
               {NAV.find(n => n.id === currentView)?.label ?? ''}
             </h1>

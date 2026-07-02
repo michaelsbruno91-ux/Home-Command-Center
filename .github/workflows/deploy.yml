@@ -17,7 +17,10 @@ jobs:
           node-version: 20
           cache: 'npm'
       - run: npm ci
-      - run: npm run build
+      - name: Build
+        run: npm run build
+        env:
+          VITE_APP_ENV: production
       - name: Write version manifest
         run: |
           SHORT_SHA="${{ github.sha }}"

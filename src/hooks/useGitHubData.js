@@ -1,19 +1,28 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
+const ENV_KEY = import.meta.env.VITE_APP_ENV ?? 'dev'
+
 const KEYS = {
-  PAT: 'hcc_pat',
-  OWNER: 'hcc_owner',
-  REPO: 'hcc_repo',
-  PATH: 'hcc_path',
-  CACHE: 'hcc_offline_cache',
+  PAT:   `hcc_${ENV_KEY}_pat`,
+  OWNER: `hcc_${ENV_KEY}_owner`,
+  REPO:  `hcc_${ENV_KEY}_repo`,
+  PATH:  `hcc_${ENV_KEY}_path`,
+  CACHE: `hcc_${ENV_KEY}_offline_cache`,
 }
+
+const DEFAULT_DATA_PATH = {
+  production: 'data/home.json',
+  sandbox:    'data/sandbox/home.json',
+  develop:    'data/dev/home.json',
+  preprod:    'data/preprod/home.json',
+}[ENV_KEY] ?? 'data/dev/home.json'
 
 function getConfig() {
   return {
-    pat: localStorage.getItem(KEYS.PAT),
+    pat:   localStorage.getItem(KEYS.PAT),
     owner: localStorage.getItem(KEYS.OWNER) || 'michaelsbruno91-ux',
-    repo: localStorage.getItem(KEYS.REPO) || 'home-data',
-    path: localStorage.getItem(KEYS.PATH) || 'data/home.json',
+    repo:  localStorage.getItem(KEYS.REPO)  || 'home-data',
+    path:  localStorage.getItem(KEYS.PATH)  || DEFAULT_DATA_PATH,
   }
 }
 

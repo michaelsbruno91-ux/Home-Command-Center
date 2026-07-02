@@ -1,8 +1,8 @@
-name: Deploy to GitHub Pages (Production)
+name: Deploy to GitHub Pages (Sandbox)
 
 on:
   push:
-    branches: [main]
+    branches: [sandbox]
 
 permissions:
   contents: write
@@ -17,7 +17,10 @@ jobs:
           node-version: 20
           cache: 'npm'
       - run: npm ci
-      - run: npm run build
+      - name: Build
+        run: npm run build
+        env:
+          VITE_APP_ENV: sandbox
       - name: Write version manifest
         run: |
           SHORT_SHA="${{ github.sha }}"
@@ -27,7 +30,7 @@ jobs:
             "sha": "${{ github.sha }}",
             "shortSha": "${SHORT_SHA}",
             "deployedAt": "${{ github.event.head_commit.timestamp }}",
-            "env": "production",
+            "env": "sandbox",
             "branch": "${{ github.ref_name }}"
           }
           EOF
@@ -35,5 +38,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          destination_dir: .
+          destination_dir: sandbox
           keep_files: true

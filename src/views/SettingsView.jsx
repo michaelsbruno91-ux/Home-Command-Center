@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { Settings, CheckCircle, AlertCircle, Loader2, Download, Upload, Unlink, TestTube } from 'lucide-react'
-import { testConnection } from '../hooks/useGitHubData'
-
-const KEYS = { PAT: 'hcc_pat', OWNER: 'hcc_owner', REPO: 'hcc_repo', PATH: 'hcc_path' }
+import { testConnection, KEYS } from '../hooks/useGitHubData'
 
 export default function SettingsView({ embedded = false, onConnect, onDisconnect, data, updateData }) {
   const [pat, setPat] = useState('')

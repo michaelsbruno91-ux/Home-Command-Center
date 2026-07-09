@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { Settings, CheckCircle, AlertCircle, Loader2, Download, Upload, Unlink, TestTube } from 'lucide-react'
-import { testConnection, KEYS } from '../hooks/useGitHubData'
+import { testConnection, KEYS, ENV_KEY } from '../hooks/useGitHubData'
+
+const ENVIRONMENTS = [
+  { key: 'production', label: 'Prod',    path: '/Home-Command-Center/',         cls: 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10' },
+  { key: 'sandbox',    label: 'Sandbox', path: '/Home-Command-Center/sandbox/', cls: 'text-amber-400 border-amber-400/30 bg-amber-400/10' },
+  { key: 'develop',    label: 'Develop', path: '/Home-Command-Center/develop/', cls: 'text-blue-400 border-blue-400/30 bg-blue-400/10' },
+  { key: 'preprod',    label: 'Preprod', path: '/Home-Command-Center/preprod/', cls: 'text-purple-400 border-purple-400/30 bg-purple-400/10' },
+]
 
 export default function SettingsView({ embedded = false, onConnect, onDisconnect, data, updateData }) {
   const [pat, setPat] = useState('')
@@ -246,13 +253,39 @@ export default function SettingsView({ embedded = false, onConnect, onDisconnect
         )}
 
         {isConnected && (
-          <button
-            onClick={() => { if (confirm('Disconnect and clear all local data?')) onDisconnect?.() }}
-            className="mt-4 flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition-colors"
-          >
-            <Unlink size={14} />
-            Disconnect
-          </button>
+          <div className="mt-4 flex items-center justify-between flex-wrap gap-3">
+            <button
+              onClick={() => { if (confirm('Disconnect and clear all local data?')) onDisconnect?.() }}
+              className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition-colors"
+            >
+              <Unlink size={14} />
+              Disconnect
+            </button>
+
+            <div className="flex items-center gap-1.5">
+              {ENVIRONMENTS.map(env =>
+                env.key === ENV_KEY ? (
+                  <span
+                    key={env.key}
+                    className={`text-[10px] font-mono font-bold px-2 py-1 rounded border ${env.cls}`}
+                  >
+                    {env.label}
+                  </span>
+                ) : (
+                  <a
+                    key={env.key}
+                    href={env.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] font-mono font-bold px-2 py-1 rounded border transition-opacity hover:opacity-80"
+                    style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted)' }}
+                  >
+                    {env.label}
+                  </a>
+                )
+              )}
+            </div>
+          </div>
         )}
 
         {status && (

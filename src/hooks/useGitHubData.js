@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
-const ENV_KEY = import.meta.env.VITE_APP_ENV ?? 'dev'
+export const ENV_KEY = import.meta.env.VITE_APP_ENV ?? 'dev'
 
-const KEYS = {
+export const KEYS = {
   PAT:   `hcc_${ENV_KEY}_pat`,
   OWNER: `hcc_${ENV_KEY}_owner`,
   REPO:  `hcc_${ENV_KEY}_repo`,

@@ -4,25 +4,16 @@ import SyncIndicator from './SyncIndicator'
 const APP_ENV = import.meta.env.VITE_APP_ENV
 
 const ENV_BADGE = {
-  sandbox: { label: 'SANDBOX', cls: 'bg-amber-400/20 text-amber-400 border-amber-400/30' },
-  develop: { label: 'DEVELOPMENT', cls: 'bg-blue-400/20 text-blue-400 border-blue-400/30' },
-  preprod: { label: 'PRE-PROD', cls: 'bg-purple-400/20 text-purple-400 border-purple-400/30' },
+  production: { label: 'P',  cls: 'text-emerald-400' },
+  sandbox:    { label: 'S',  cls: 'text-amber-400' },
+  develop:    { label: 'D',  cls: 'text-blue-400' },
+  preprod:    { label: 'PP', cls: 'text-purple-400' },
 }
 
 function EnvBadge({ small = false }) {
-  if (APP_ENV === 'production') {
-    return <span className="text-[10px] font-mono font-bold text-emerald-400 flex-shrink-0">P</span>
-  }
   const cfg = ENV_BADGE[APP_ENV] ?? ENV_BADGE.develop
-  if (small) {
-    return (
-      <span className={`text-[9px] font-mono font-bold px-1 py-0.5 rounded border ${cfg.cls}`}>
-        {cfg.label}
-      </span>
-    )
-  }
   return (
-    <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${cfg.cls}`}>
+    <span className={`${small ? 'text-[9px]' : 'text-[10px]'} font-mono font-bold flex-shrink-0 ${cfg.cls}`}>
       {cfg.label}
     </span>
   )

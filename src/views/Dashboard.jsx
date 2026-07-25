@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { AlertTriangle, Clock, TrendingUp, CheckCircle, Plus, Wrench, Users } from 'lucide-react'
+import { AlertTriangle, Clock, TrendingUp, CheckCircle, Plus, Wrench, Users, ClipboardPaste } from 'lucide-react'
 import HouseHealthGauge from '../components/HouseHealthGauge'
+import BulkAddModal from '../components/BulkAddModal'
 import { getAllTasks, daysFromToday, formatDate, PRIORITY_ORDER } from '../utils/tasks'
 import { calculateNextDue } from '../utils/tasks'
 
@@ -64,6 +65,8 @@ function StatTile({ Icon, iconCls, label, count, items, emptyText, onViewAll, re
 
 export default function Dashboard({ data, updateData, setView, navigateTo }) {
   const [fabOpen, setFabOpen] = useState(false)
+  const [bulkOpen, setBulkOpen] = useState(false)
+  const [bulkResult, setBulkResult] = useState('')
 
   const tasks = getAllTasks(data)
 
@@ -292,6 +295,7 @@ export default function Dashboard({ data, updateData, setView, navigateTo }) {
               { label: 'Add Task', Icon: Wrench, action: () => { setView('systems'); setFabOpen(false) } },
               { label: 'Add Improvement', Icon: TrendingUp, action: () => { setView('improvements'); setFabOpen(false) } },
               { label: 'Add Contact', Icon: Users, action: () => { setView('contacts'); setFabOpen(false) } },
+              { label: 'Bulk Add', Icon: ClipboardPaste, action: () => { setBulkOpen(true); setFabOpen(false) } },
             ].map(({ label, Icon, action }) => (
               <button
                 key={label}
@@ -313,6 +317,23 @@ export default function Dashboard({ data, updateData, setView, navigateTo }) {
           <Plus size={22} style={{ transform: fabOpen ? 'rotate(45deg)' : 'none', transition: '150ms' }} />
         </button>
       </div>
+
+      {bulkOpen && (
+        <BulkAddModal
+          data={data}
+          updateData={updateData}
+          onClose={(result) => { setBulkOpen(false); if (result) setBulkResult(result) }}
+        />
+      )}
+
+      {bulkResult && (
+        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-4 py-2 rounded-xl shadow-lg text-sm no-print"
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
+          <CheckCircle size={14} className="text-emerald-400" />
+          {bulkResult}
+          <button onClick={() => setBulkResult('')} className="ml-1" style={{ color: 'var(--color-muted)' }}>✕</button>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,10 +1,6 @@
 import { useState } from 'react'
 import { Plus, Edit2, Trash2, LayoutGrid, Table, Link2, X } from 'lucide-react'
-
-const STATUSES = ['Planned', 'In Progress', 'On Hold', 'Complete']
-const PRIORITIES = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']
-const FUNDING = ['Cash', 'HELOC', 'Financing', 'Closing Credit', 'Cash / NJ SREC-II Revenue', 'TBD']
-const CATEGORIES = ['Safety', 'Structural', 'Site', 'Energy', 'Interior', 'Mechanical', 'Exterior']
+import { IMPROVEMENT_STATUSES as STATUSES, PRIORITIES, FUNDING, CATEGORIES } from '../utils/vocab'
 
 const PRIORITY_COLORS = {
   CRITICAL: 'bg-red-500 text-white',

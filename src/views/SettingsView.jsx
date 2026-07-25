@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { Settings, CheckCircle, AlertCircle, Loader2, Download, Upload, Unlink, TestTube } from 'lucide-react'
+import { Settings, CheckCircle, AlertCircle, Loader2, Download, Upload, Unlink, TestTube, RefreshCw } from 'lucide-react'
 import { testConnection, KEYS, ENV_KEY } from '../hooks/useGitHubData'
 import DataSyncCard from '../components/DataSyncCard'
+import SecurityCard from '../components/SecurityCard'
+import { getLockState, hasVault, replacePat, markVerified } from '../utils/vault'
 
 const ENVIRONMENTS = [
   { key: 'production', label: 'Prod',    path: '/Home-Command-Center/',         cls: 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10' },
@@ -10,26 +12,36 @@ const ENVIRONMENTS = [
   { key: 'preprod',    label: 'Preprod', path: '/Home-Command-Center/preprod/', cls: 'text-purple-400 border-purple-400/30 bg-purple-400/10' },
 ]
 
-export default function SettingsView({ embedded = false, onConnect, onDisconnect, data, updateData }) {
+export default function SettingsView({ embedded = false, onConnect, onLock, onDisconnect, data, updateData }) {
   const [pat, setPat] = useState('')
   const [owner, setOwner] = useState(localStorage.getItem(KEYS.OWNER) || 'michaelsbruno91-ux')
   const [repo, setRepo] = useState(localStorage.getItem(KEYS.REPO) || 'home-data')
   const [path, setPath] = useState(localStorage.getItem(KEYS.PATH) || 'data/home.json')
   const [status, setStatus] = useState(null) // null | 'loading' | 'ok' | 'error'
   const [message, setMessage] = useState('')
+  const [replacing, setReplacing] = useState(false)
 
-  const isConnected = !!localStorage.getItem(KEYS.PAT)
+  const isConnected = getLockState() !== 'unconfigured'
 
   async function handleConnect() {
     if (!pat.trim()) { setStatus('error'); setMessage('PAT is required'); return }
     setStatus('loading')
     setMessage('')
     try {
-      await testConnection(pat.trim(), owner.trim(), repo.trim(), path.trim())
-      localStorage.setItem(KEYS.PAT, pat.trim())
+      const result = await testConnection(pat.trim(), owner.trim(), repo.trim(), path.trim())
+      // With the app lock on, the token goes into the vault; otherwise it lands
+      // in the legacy plaintext slot until the user enables the lock.
+      if (hasVault()) {
+        await replacePat(pat.trim())
+      } else {
+        localStorage.setItem(KEYS.PAT, pat.trim())
+      }
       localStorage.setItem(KEYS.OWNER, owner.trim())
       localStorage.setItem(KEYS.REPO, repo.trim())
       localStorage.setItem(KEYS.PATH, path.trim())
+      markVerified(result.expiresAt)
+      setPat('')
+      setReplacing(false)
       setStatus('ok')
       setMessage('Connected! Loading your data…')
       setTimeout(() => onConnect?.(), 800)
@@ -220,7 +232,7 @@ export default function SettingsView({ embedded = false, onConnect, onDisconnect
             : <span className="text-xs font-mono text-red-400 flex items-center gap-1"><AlertCircle size={12} /> Disconnected</span>}
         </div>
 
-        {isConnected ? (
+        {isConnected && !replacing ? (
           <div className="space-y-2 text-xs font-mono text-muted">
             <div>Owner: {localStorage.getItem(KEYS.OWNER)}</div>
             <div>Repo: {localStorage.getItem(KEYS.REPO)}</div>
@@ -255,13 +267,23 @@ export default function SettingsView({ embedded = false, onConnect, onDisconnect
 
         {isConnected && (
           <div className="mt-4 flex items-center justify-between flex-wrap gap-3">
-            <button
-              onClick={() => { if (confirm('Disconnect and clear all local data?')) onDisconnect?.() }}
-              className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition-colors"
-            >
-              <Unlink size={14} />
-              Disconnect
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => { setReplacing(v => !v); setStatus(null); setPat('') }}
+                className="flex items-center gap-2 text-sm transition-colors hover:opacity-80"
+                style={{ color: 'var(--color-muted)' }}
+              >
+                <RefreshCw size={14} />
+                {replacing ? 'Cancel' : 'Replace token'}
+              </button>
+              <button
+                onClick={() => { if (confirm('Disconnect and clear all local data?')) onDisconnect?.() }}
+                className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition-colors"
+              >
+                <Unlink size={14} />
+                Disconnect
+              </button>
+            </div>
 
             <div className="flex items-center gap-1.5">
               {ENVIRONMENTS.map(env =>
@@ -301,6 +323,9 @@ export default function SettingsView({ embedded = false, onConnect, onDisconnect
           </div>
         )}
       </div>
+
+      {/* App lock */}
+      {isConnected && <SecurityCard onLock={onLock} onChange={onConnect} />}
 
       {/* Prod → lower-env data sync (not shown in production) */}
       {isConnected && ENV_KEY !== 'production' && (

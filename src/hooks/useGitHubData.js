@@ -1,6 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import {
+  getActivePat,
+  getLockState,
+  markVerified,
+  clearVerified,
+  lock as lockVault,
+  resetVault,
+  SESSION_KEY,
+  VAULT_KEY,
+  VERIFIED_KEY,
+} from '../utils/vault'
 
 export const ENV_KEY = import.meta.env.VITE_APP_ENV ?? 'dev'
+
+/** GitHub reports fine-grained token expiry on every authenticated response. */
+export const TOKEN_EXPIRY_HEADER = 'github-authentication-token-expiration'
 
 export const KEYS = {
   PAT:   `hcc_${ENV_KEY}_pat`,
@@ -21,7 +35,7 @@ const DEFAULT_DATA_PATH = DATA_PATHS[ENV_KEY] ?? 'data/dev/home.json'
 
 function getConfig() {
   return {
-    pat:   localStorage.getItem(KEYS.PAT),
+    pat:   getActivePat(),
     owner: localStorage.getItem(KEYS.OWNER) || 'michaelsbruno91-ux',
     repo:  localStorage.getItem(KEYS.REPO)  || 'home-data',
     path:  localStorage.getItem(KEYS.PATH)  || DEFAULT_DATA_PATH,
@@ -44,12 +58,13 @@ export async function testConnection(pat, owner, repo, path) {
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
   const res = await fetch(url, { headers: apiHeaders(pat) })
   if (res.status === 401) throw new Error('Token invalid or expired — check PAT permissions (repo scope required)')
-  if (res.status === 404) return { exists: false, data: null, sha: null }
+  const expiresAt = res.headers.get(TOKEN_EXPIRY_HEADER)
+  if (res.status === 404) return { exists: false, data: null, sha: null, expiresAt }
   if (!res.ok) throw new Error(`GitHub API error: ${res.status}`)
   const json = await res.json()
   let data = null
   try { data = decodeContent(json.content) } catch { data = {} }
-  return { exists: true, data, sha: json.sha }
+  return { exists: true, data, sha: json.sha, expiresAt }
 }
 
 export async function writeDataFile(pat, owner, repo, path, payload, sha, message) {
@@ -74,7 +89,10 @@ export function useGitHubData() {
   const [syncStatus, setSyncStatus] = useState('idle')
   const [lastSaved, setLastSaved] = useState(null)
   const [syncError, setSyncError] = useState(null)
-  const [isConfigured, setIsConfigured] = useState(() => !!localStorage.getItem(KEYS.PAT))
+  // 'unconfigured' — no token yet | 'locked' — token encrypted, needs a
+  // credential | 'unlocked' — token available for API calls
+  const [lockState, setLockState] = useState(getLockState)
+  const isConfigured = lockState === 'unlocked'
 
   const shaRef = useRef(null)
   const debounceRef = useRef(null)
@@ -86,6 +104,8 @@ export function useGitHubData() {
     const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
     const res = await fetch(url, { headers: apiHeaders(pat) })
     if (res.status === 401) throw Object.assign(new Error('Token invalid or expired'), { code: 401 })
+    // A 2xx/404 means GitHub accepted the token — that is the revalidation.
+    markVerified(res.headers.get(TOKEN_EXPIRY_HEADER))
     if (res.status === 404) return null
     if (!res.ok) throw Object.assign(new Error(`API error ${res.status}`), { code: res.status })
     const json = await res.json()
@@ -215,17 +235,31 @@ export function useGitHubData() {
     if (data) performWrite(data)
   }, [data, performWrite])
 
+  /** Re-read lock state after connecting, unlocking, or enrolling. */
   const reconnect = useCallback(() => {
-    setIsConfigured(!!localStorage.getItem(KEYS.PAT))
+    setLockState(getLockState())
   }, [])
 
-  const disconnect = useCallback(() => {
-    [KEYS.PAT, KEYS.OWNER, KEYS.REPO, KEYS.PATH, KEYS.CACHE].forEach(k => localStorage.removeItem(k))
-    setIsConfigured(false)
+  const lock = useCallback(() => {
+    lockVault()
     setData(null)
     setSyncStatus('idle')
     setSyncError(null)
     shaRef.current = null
+    setLockState(getLockState())
+  }, [])
+
+  const disconnect = useCallback(() => {
+    resetVault()
+    clearVerified()
+    ;[KEYS.PAT, KEYS.OWNER, KEYS.REPO, KEYS.PATH, KEYS.CACHE, VAULT_KEY, VERIFIED_KEY]
+      .forEach(k => localStorage.removeItem(k))
+    try { sessionStorage.removeItem(SESSION_KEY) } catch { /* no session storage */ }
+    setData(null)
+    setSyncStatus('idle')
+    setSyncError(null)
+    shaRef.current = null
+    setLockState(getLockState())
   }, [])
 
   return {
@@ -237,7 +271,9 @@ export function useGitHubData() {
     syncError,
     forceSync,
     isConfigured,
+    lockState,
     reconnect,
+    lock,
     disconnect,
   }
 }

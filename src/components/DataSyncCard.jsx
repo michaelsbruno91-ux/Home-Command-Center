@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { DownloadCloud, RefreshCw, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { testConnection, writeDataFile, KEYS, ENV_KEY, DATA_PATHS } from '../hooks/useGitHubData'
 import { ingestNew, syncMetadata, summaryText } from '../utils/envSync'
+import { getActivePat } from '../utils/vault'
 
 const LOWER_ENVS = ['sandbox', 'develop', 'preprod']
 
@@ -19,7 +20,7 @@ export default function DataSyncCard({ data, updateData }) {
     setBusy(true)
     setStatus(null)
     setMessage('')
-    const pat = localStorage.getItem(KEYS.PAT)
+    const pat = getActivePat()
     const owner = localStorage.getItem(KEYS.OWNER) || 'michaelsbruno91-ux'
     const repo = localStorage.getItem(KEYS.REPO) || 'home-data'
     const applyMerge = mode === 'ingest' ? ingestNew : syncMetadata

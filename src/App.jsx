@@ -4,6 +4,7 @@ import { generateSeedData } from './data/seedData'
 import AppShell from './components/AppShell'
 import GlobalSearch from './components/GlobalSearch'
 import SettingsView from './views/SettingsView'
+import LockScreen from './components/LockScreen'
 import Dashboard from './views/Dashboard'
 import SystemsView from './views/SystemsView'
 import ImprovementsView from './views/ImprovementsView'
@@ -25,7 +26,9 @@ export default function App() {
     syncError,
     forceSync,
     isConfigured,
+    lockState,
     reconnect,
+    lock,
     disconnect,
   } = useGitHubData()
 
@@ -50,7 +53,11 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler)
   }, [])
 
-  if (!isConfigured) {
+  if (lockState === 'locked') {
+    return <LockScreen onUnlock={reconnect} />
+  }
+
+  if (lockState === 'unconfigured') {
     return <SettingsView onConnect={reconnect} />
   }
 
@@ -74,7 +81,7 @@ export default function App() {
     products:     <ProductsView {...viewProps} />,
     contacts:     <ContactsView {...viewProps} />,
     documents:    <DocumentsView {...viewProps} />,
-    settings:     <SettingsView embedded data={data} updateData={updateData} onConnect={reconnect} onDisconnect={disconnect} />,
+    settings:     <SettingsView embedded data={data} updateData={updateData} onConnect={reconnect} onLock={lock} onDisconnect={disconnect} />,
   }
 
   return (

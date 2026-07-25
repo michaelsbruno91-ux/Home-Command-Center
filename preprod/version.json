@@ -1,7 +1,7 @@
 {
-  "sha": "2e35c8a3a2d0c9b057fce463934a56483a717932",
-  "shortSha": "2e35c8a",
-  "deployedAt": "2026-07-24T21:53:26-04:00",
+  "sha": "387da3718998fbb048dd1dd5875d5d794b4cd9df",
+  "shortSha": "387da37",
+  "deployedAt": "2026-07-24T23:06:02-04:00",
   "env": "preprod",
   "branch": "preprod"
 }

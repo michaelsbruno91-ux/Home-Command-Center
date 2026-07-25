@@ -10,12 +10,14 @@ export const KEYS = {
   CACHE: `hcc_${ENV_KEY}_offline_cache`,
 }
 
-const DEFAULT_DATA_PATH = {
+export const DATA_PATHS = {
   production: 'data/home.json',
   sandbox:    'data/sandbox/home.json',
   develop:    'data/dev/home.json',
   preprod:    'data/preprod/home.json',
-}[ENV_KEY] ?? 'data/dev/home.json'
+}
+
+const DEFAULT_DATA_PATH = DATA_PATHS[ENV_KEY] ?? 'data/dev/home.json'
 
 function getConfig() {
   return {
@@ -48,6 +50,23 @@ export async function testConnection(pat, owner, repo, path) {
   let data = null
   try { data = decodeContent(json.content) } catch { data = {} }
   return { exists: true, data, sha: json.sha }
+}
+
+export async function writeDataFile(pat, owner, repo, path, payload, sha, message) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: { ...apiHeaders(pat), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message: message ?? `Update ${path} — ${new Date().toISOString()}`,
+      content: encodeContent(payload),
+      ...(sha ? { sha } : {}),
+    }),
+  })
+  if (res.status === 401) throw new Error('Token invalid or expired')
+  if (!res.ok) throw new Error(`Write error ${res.status}`)
+  const json = await res.json()
+  return json.content.sha
 }
 
 export function useGitHubData() {

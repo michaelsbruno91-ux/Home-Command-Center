@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Settings, CheckCircle, AlertCircle, Loader2, Download, Upload, Unlink, TestTube } from 'lucide-react'
 import { testConnection, KEYS, ENV_KEY } from '../hooks/useGitHubData'
+import DataSyncCard from '../components/DataSyncCard'
 
 const ENVIRONMENTS = [
   { key: 'production', label: 'Prod',    path: '/Home-Command-Center/',         cls: 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10' },
@@ -300,6 +301,11 @@ export default function SettingsView({ embedded = false, onConnect, onDisconnect
           </div>
         )}
       </div>
+
+      {/* Prod → lower-env data sync (not shown in production) */}
+      {isConnected && ENV_KEY !== 'production' && (
+        <DataSyncCard data={data} updateData={updateData} />
+      )}
 
       {/* Data management */}
       <div className={cardCls} style={cardStyle}>

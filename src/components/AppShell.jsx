@@ -1,4 +1,4 @@
-import { LayoutDashboard, Wrench, TrendingUp, Package, Users, FileText, Settings, Search } from 'lucide-react'
+import { LayoutDashboard, Wrench, TrendingUp, Package, Users, FileText, Settings, Search, Car } from 'lucide-react'
 import SyncIndicator from './SyncIndicator'
 
 const APP_ENV = import.meta.env.VITE_APP_ENV
@@ -26,10 +26,11 @@ const NAV = [
   { id: 'products',     label: 'Products',      Icon: Package         },
   { id: 'contacts',     label: 'Contacts',      Icon: Users           },
   { id: 'documents',    label: 'Documents',     Icon: FileText        },
+  { id: 'garage',       label: 'Garage',        Icon: Car             },
   { id: 'settings',     label: 'Settings',      Icon: Settings        },
 ]
 
-const MOBILE_NAV = ['dashboard', 'systems', 'improvements', 'contacts', 'settings']
+const MOBILE_NAV = ['dashboard', 'systems', 'improvements', 'garage', 'contacts', 'settings']
 
 export default function AppShell({
   currentView, setView, children,
@@ -166,7 +167,7 @@ export default function AppShell({
               <button
                 key={id}
                 onClick={() => setView(id)}
-                className="flex flex-col items-center gap-0.5 py-2 px-3 flex-1 text-[10px] font-mono transition-colors"
+                className="flex flex-col items-center gap-0.5 py-2 px-1 flex-1 min-w-0 text-[10px] font-mono transition-colors"
                 style={{ color: active ? 'var(--color-accent)' : 'var(--color-muted)' }}
               >
                 <Icon size={20} />

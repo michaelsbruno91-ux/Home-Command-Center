@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { useGitHubData } from './hooks/useGitHubData'
 import { generateSeedData } from './data/seedData'
 import AppShell from './components/AppShell'
@@ -11,6 +11,9 @@ import ImprovementsView from './views/ImprovementsView'
 import ProductsView from './views/ProductsView'
 import ContactsView from './views/ContactsView'
 import DocumentsView from './views/DocumentsView'
+
+// three.js is heavy; only fetch it when the Garage tab is opened.
+const GarageView = lazy(() => import('./views/GarageView'))
 
 export default function App() {
   const [view, setView] = useState('dashboard')
@@ -81,6 +84,11 @@ export default function App() {
     products:     <ProductsView {...viewProps} />,
     contacts:     <ContactsView {...viewProps} />,
     documents:    <DocumentsView {...viewProps} />,
+    garage: (
+      <Suspense fallback={<div className="p-6 text-sm font-mono" style={{ color: 'var(--color-muted)' }}>Loading garage…</div>}>
+        <GarageView />
+      </Suspense>
+    ),
     settings:     <SettingsView embedded data={data} updateData={updateData} onConnect={reconnect} onLock={lock} onDisconnect={disconnect} />,
   }
 
